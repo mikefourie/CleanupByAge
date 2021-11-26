@@ -13,4 +13,7 @@ public class Options
 
     [Option('v', "verbose", Required = false, HelpText = "Set message logging to verbose.", Default = false)]
     public bool Verbose { get; set; }
+
+    [Option('m', "multithread", Required = false, HelpText = "Set deletion to operate in parallel across provided paths", Default = false)]
+    public bool MultiThread { get; set; }
 }

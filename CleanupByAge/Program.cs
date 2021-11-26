@@ -19,55 +19,111 @@ public class Program
         int filecount = 1, dircount = 1;
         long length = 0;
 
-        foreach (string path in paths)
+        if (!programOptions.MultiThread || paths.Length == 1)
         {
-            try
+            foreach (string path in paths)
             {
-                foreach (string rootdirdirectory in Directory.GetDirectories(path))
+                try
                 {
-                    if (!programOptions.DryRun)
+                    foreach (string rootdirdirectory in Directory.GetDirectories(path))
                     {
-                        Console.WriteLine($"Scanning - {rootdirdirectory}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Scanning - {rootdirdirectory} - DRYRUN");
-                    }
-
-                    foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
-                    {
-                        FileInfo f = new (file);
-                        length += f.Length;
-                        filecount++;
-                        if (programOptions.Verbose)
-                        {
-                            Console.WriteLine($"{filecount} {file} {f.LastWriteTime} {BytesToString(f.Length)}");
-                        }
-
                         if (!programOptions.DryRun)
                         {
-                            File.Delete(file);
+                            Console.WriteLine($"Scanning - {rootdirdirectory}");
                         }
-                    }
-
-                    foreach (string directory in Directory.GetDirectories(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(d => Directory.GetFiles(d).Length == 0 && Directory.GetDirectories(d).Length == 0))
-                    {
-                        Console.WriteLine($"{dircount++} {directory}");
-                        if (!programOptions.DryRun)
+                        else
                         {
-                            Directory.Delete(directory, false);
+                            Console.WriteLine($"Scanning - {rootdirdirectory} - DRYRUN");
+                        }
+
+                        foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
+                        {
+                            FileInfo f = new (file);
+                            length += f.Length;
+                            filecount++;
+                            if (programOptions.Verbose)
+                            {
+                                Console.WriteLine($"{filecount} {file} {f.LastWriteTime} {BytesToString(f.Length)}");
+                            }
+
+                            if (!programOptions.DryRun)
+                            {
+                                File.Delete(file);
+                            }
+                        }
+
+                        foreach (string directory in Directory.GetDirectories(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(d => Directory.GetFiles(d).Length == 0 && Directory.GetDirectories(d).Length == 0))
+                        {
+                            Console.WriteLine($"{dircount++} {directory}");
+                            if (!programOptions.DryRun)
+                            {
+                                Directory.Delete(directory, false);
+                            }
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"OH DEAR - {ex}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"OH DEAR - {ex}");
-            }
-        }
 
-        TimeSpan t = DateTime.Now - start;
-        Console.WriteLine($"dircount {--dircount}, filecount {--filecount}, space {BytesToString(length)}. {t.TotalMinutes}m: {t.Seconds}s");
+            TimeSpan t = DateTime.Now - start;
+            Console.WriteLine($"dircount {--dircount}, filecount {--filecount}, space {BytesToString(length)}. {t.TotalMinutes}m: {t.Seconds}s");
+        }
+        else
+        {
+            Console.WriteLine($"Processing {paths.Length} paths in parallel...");
+
+            Parallel.ForEach(paths, path =>
+            {
+                try
+                {
+                    foreach (string rootdirdirectory in Directory.GetDirectories(path))
+                    {
+                        if (!programOptions.DryRun)
+                        {
+                            Console.WriteLine($"Scanning - {rootdirdirectory}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Scanning - {rootdirdirectory} - DRYRUN");
+                        }
+
+                        foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
+                        {
+                            FileInfo f = new (file);
+                            length += f.Length;
+                            filecount++;
+                            if (programOptions.Verbose)
+                            {
+                                Console.WriteLine($"{filecount} {file} {f.LastWriteTime} {BytesToString(f.Length)}");
+                            }
+
+                            if (!programOptions.DryRun)
+                            {
+                                File.Delete(file);
+                            }
+                        }
+
+                        foreach (string directory in Directory.GetDirectories(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(d => Directory.GetFiles(d).Length == 0 && Directory.GetDirectories(d).Length == 0))
+                        {
+                            Console.WriteLine($"{dircount++} {directory}");
+                            if (!programOptions.DryRun)
+                            {
+                                Directory.Delete(directory, false);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"OH DEAR - {ex}");
+                }
+            });
+            TimeSpan t = DateTime.Now - start;
+            Console.WriteLine($"dircount {--dircount}, filecount {--filecount}, space {BytesToString(length)}. {t.TotalMinutes}m: {t.Seconds}s");
+        }
     }
 
     private static string BytesToString(long byteCount)
