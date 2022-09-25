@@ -21,21 +21,13 @@ public class Program
 
         if (!programOptions.MultiThread || paths.Length == 1)
         {
-            foreach (string path in paths)
+            foreach (string scanPath in paths)
             {
                 try
                 {
-                    foreach (string rootdirdirectory in Directory.GetDirectories(path))
+                    foreach (string rootdirdirectory in Directory.GetDirectories(scanPath))
                     {
-                        if (!programOptions.DryRun)
-                        {
-                            Console.WriteLine($"Scanning - {rootdirdirectory}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Scanning - {rootdirdirectory} - DRYRUN");
-                        }
-
+                        Console.WriteLine(!programOptions.DryRun ? $"Scanning - {rootdirdirectory}" : $"Scanning - {rootdirdirectory} - DRY RUN");
                         foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
                         {
                             FileInfo f = new (file);
@@ -75,21 +67,13 @@ public class Program
         {
             Console.WriteLine($"Processing {paths.Length} paths in parallel...");
 
-            Parallel.ForEach(paths, path =>
+            Parallel.ForEach(paths, scanPath =>
             {
                 try
                 {
-                    foreach (string rootdirdirectory in Directory.GetDirectories(path))
+                    foreach (string rootdirdirectory in Directory.GetDirectories(scanPath))
                     {
-                        if (!programOptions.DryRun)
-                        {
-                            Console.WriteLine($"Scanning - {rootdirdirectory}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Scanning - {rootdirdirectory} - DRYRUN");
-                        }
-
+                        Console.WriteLine(!programOptions.DryRun ? $"Scanning - {rootdirdirectory}" : $"Scanning - {rootdirdirectory} - DRY RUN");
                         foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
                         {
                             FileInfo f = new (file);
@@ -137,6 +121,6 @@ public class Program
         long bytes = Math.Abs(byteCount);
         int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
         double num = Math.Round(bytes / Math.Pow(1024, place), 1);
-        return (Math.Sign(byteCount) * num).ToString() + suf[place];
+        return (Math.Sign(byteCount) * num) + suf[place];
     }
 }
