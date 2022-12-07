@@ -28,7 +28,7 @@ public class Program
                     foreach (string rootdirdirectory in Directory.GetDirectories(scanPath))
                     {
                         Console.WriteLine(!programOptions.DryRun ? $"Scanning - {rootdirdirectory}" : $"Scanning - {rootdirdirectory} - DRY RUN");
-                        foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
+                        foreach (string file in Directory.EnumerateFiles(rootdirdirectory, "*.*", SearchOption.AllDirectories).AsParallel().Where(path => File.GetLastWriteTime(path) < DateTime.Now.AddDays(-days)).ToList())
                         {
                             FileInfo f = new (file);
                             length += f.Length;
