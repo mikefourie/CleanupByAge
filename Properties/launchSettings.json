@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CleanupByAge": {
+      "commandName": "Project",
+      "commandLineArgs": "-d 70 -p \"N:\\path\""
+    }
+  }
+}

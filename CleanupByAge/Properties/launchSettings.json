@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "CleanupByAge": {
-      "commandName": "Project",
-      "commandLineArgs": "-d 70 -p \"N:\\roslogs\",\"N:\\rosbags\",\"N:\\coredumps\",\"N:\\px4logs\""
-    }
-  }
-}
